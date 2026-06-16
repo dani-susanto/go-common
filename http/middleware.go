@@ -36,7 +36,7 @@ func (rw *responseWriter) WriteHeader(status int) {
 func (s *http) Log(next gohttp.Handler) gohttp.Handler {
 	return gohttp.HandlerFunc(func(w gohttp.ResponseWriter, r *gohttp.Request) {
 		start := time.Now()
-		s.log.Info("INCOMING method=%s path=%s time=%s ip=%s",
+		s.log.Infof("INCOMING method=%s path=%s time=%s ip=%s",
 			r.Method,
 			r.URL.Path,
 			start.UTC().Format("2006-01-02T15:04:05.000Z07:00"),
@@ -60,11 +60,11 @@ func (s *http) Log(next gohttp.Handler) gohttp.Handler {
 
 		switch {
 		case wrapped.status >= 500:
-			s.log.Error("%v", msg)
+			s.log.Errorf("%v", msg)
 		case wrapped.status >= 400:
-			s.log.Error("%v", msg)
+			s.log.Errorf("%v", msg)
 		default:
-			s.log.Info("%v", msg)
+			s.log.Infof("%v", msg)
 		}
 
 	})
