@@ -58,22 +58,3 @@ func GetHttpCode(err error) int {
 	}
 	return http.StatusInternalServerError
 }
-
-// var statusToGRPC = map[Status]codes.Code{
-// 	INTERNAL_SERVER_ERROR: codes.Internal,
-// 	BAD_REQUEST:           codes.InvalidArgument,
-// 	UNAUTHORIZED:          codes.Unauthenticated,
-// 	FORBIDDEN:             codes.PermissionDenied,
-// 	NOT_FOUND:             codes.NotFound,
-// 	CONFLICT:              codes.AlreadyExists,
-// 	UNPROCESSABLE_ENTITY:  codes.FailedPrecondition,
-// }
-
-// func GetGRPCCode(err error) codes.Code {
-// 	if e, ok := AsException(err); ok {
-// 		if code, ok := statusToGRPC[e.Status]; ok {
-// 			return code
-// 		}
-// 	}
-// 	return codes.Internal
-// }

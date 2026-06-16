@@ -37,22 +37,6 @@ func (r *responder) Error(w gohttp.ResponseWriter, statusCode int, message strin
 	r.output(w, statusCode, false, nil, message, nil, errors)
 }
 
-// func (r *responder) output(w gohttp.ResponseWriter, statusCode int, status bool, data any, message string, meta any, errors any) {
-// 	res := response{
-// 		Status:  status,
-// 		Message: message,
-// 		Data:    data,
-// 		Meta:    meta,
-// 		Errors:  errors,
-// 	}
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(statusCode)
-// 	if err := r.json.EncodeHttp(w, res); err != nil {
-// 		gohttp.Error(w, err.Error(), gohttp.StatusInternalServerError)
-// 		return
-// 	}
-// }
-
 func (r *responder) output(w gohttp.ResponseWriter, statusCode int, status bool, data any, message string, meta any, errors any) {
 	res := Response{
 		Status:  status,
