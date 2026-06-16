@@ -11,7 +11,7 @@ type Routes struct {
 	Route string
 }
 
-func NewRabbitMQ(
+func New(
 	username string,
 	password string,
 	host string,
