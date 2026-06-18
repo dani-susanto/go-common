@@ -1,4 +1,4 @@
-package exception
+package Exception
 
 import (
 	"net/http"
@@ -16,27 +16,27 @@ const (
 	UNPROCESSABLE_ENTITY  Status = "UNPROCESSABLE_ENTITY"
 )
 
-type exception struct {
+type Exception struct {
 	Status  Status `json:"status"`
 	Message string `json:"message"`
 }
 
-func (e *exception) Error() string {
+func (e *Exception) Error() string {
 	return e.Message
 }
 
 func Throw(status Status, message string) error {
-	return &exception{
+	return &Exception{
 		Status:  status,
 		Message: message,
 	}
 }
 
-func AsException(err error) (*exception, bool) {
+func AsException(err error) (*Exception, bool) {
 	if err == nil {
 		return nil, false
 	}
-	e, ok := err.(*exception)
+	e, ok := err.(*Exception)
 	return e, ok
 }
 
