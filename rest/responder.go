@@ -37,7 +37,7 @@ type MetaData struct {
 
 type SuccessResponse struct {
 	Status  bool      `json:"status" example:"true"`
-	Message string    `json:"message,omitempty" example:"login successful"`
+	Message string    `json:"message,omitempty"`
 	Data    any       `json:"data,omitempty"`
 	Meta    *MetaData `json:"meta,omitempty"`
 }
