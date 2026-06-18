@@ -16,27 +16,27 @@ const (
 	UNPROCESSABLE_ENTITY  Status = "UNPROCESSABLE_ENTITY"
 )
 
-type Exception struct {
+type exception struct {
 	Status  Status `json:"status"`
 	Message string `json:"message"`
 }
 
-func (e *Exception) Error() string {
+func (e *exception) Error() string {
 	return e.Message
 }
 
 func Throw(status Status, message string) error {
-	return &Exception{
+	return &exception{
 		Status:  status,
 		Message: message,
 	}
 }
 
-func AsException(err error) (*Exception, bool) {
+func AsException(err error) (*exception, bool) {
 	if err == nil {
 		return nil, false
 	}
-	e, ok := err.(*Exception)
+	e, ok := err.(*exception)
 	return e, ok
 }
 
