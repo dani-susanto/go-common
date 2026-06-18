@@ -44,8 +44,8 @@ type SuccessResponse struct {
 
 type ErrorResponse struct {
 	Status  bool                `json:"status" example:"false"`
-	Message string              `json:"message,omitempty" example:"user not found"`
-	Errors  map[string][]string `json:"errors,omitempty"`
+	Message string              `json:"message,omitempty"`
+	Errors  map[string][]string `json:"errors,omitempty" swaggertype:"object" example:"message:[string]"`
 }
 
 func (r *responder) Success(w http.ResponseWriter, statusCode int, data any, message string, meta *MetaData) {
