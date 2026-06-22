@@ -2,67 +2,64 @@ package log
 
 import (
 	"context"
-	"fmt"
-	golog "log"
-	"strings"
+	"log/slog"
+	"os"
 
-	otellog "go.opentelemetry.io/otel/log"
-	"go.opentelemetry.io/otel/log/global"
-)
-
-const (
-	red   = "\033[31m"
-	green = "\033[32m"
-	reset = "\033[0m"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Log interface {
-	Info(v ...any)
-	Error(v ...any)
-	Infof(format string, v ...any)
-	Errorf(format string, v ...any)
+	Info(msg string, args ...any)
+	Error(msg string, args ...any)
+	InfoContext(ctx context.Context, msg string, args ...any)
+	ErrorContext(ctx context.Context, msg string, args ...any)
 }
 
 type log struct {
-	ctx        context.Context
-	otelLogger otellog.Logger
+	logger *slog.Logger
 }
 
-func New(ctx context.Context, serviceName string) Log {
-	return &log{
-		ctx:        ctx,
-		otelLogger: global.GetLoggerProvider().Logger(serviceName),
+type otelHandler struct {
+	slog.Handler
+}
+
+func (h *otelHandler) Handle(ctx context.Context, r slog.Record) error {
+	span := trace.SpanFromContext(ctx)
+	if span.IsRecording() {
+		r.AddAttrs(
+			slog.String("trace_id", span.SpanContext().TraceID().String()),
+			slog.String("span_id", span.SpanContext().SpanID().String()),
+		)
 	}
+	return h.Handler.Handle(ctx, r)
 }
 
-func (l *log) Info(v ...any) {
-	l.print(otellog.SeverityInfo, green, "[INF]", sprint(v))
+func New(serviceName string) Log {
+	logger := slog.New(slog.NewMultiHandler(
+		&otelHandler{
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				Level: slog.LevelDebug,
+			}),
+		},
+		otelslog.NewHandler(serviceName),
+	))
+
+	return &log{logger: logger}
 }
 
-func (l *log) Error(v ...any) {
-	l.print(otellog.SeverityError, red, "[ERR]", sprint(v))
+func (l *log) Info(msg string, args ...any) {
+	l.logger.Info(msg, args...)
 }
 
-func (l *log) Infof(format string, v ...any) {
-	l.print(otellog.SeverityInfo, green, "[INF]", fmt.Sprintf(format, v...))
+func (l *log) Error(msg string, args ...any) {
+	l.logger.Error(msg, args...)
 }
 
-func (l *log) Errorf(format string, v ...any) {
-	l.print(otellog.SeverityError, red, "[ERR]", fmt.Sprintf(format, v...))
+func (l *log) InfoContext(ctx context.Context, msg string, args ...any) {
+	l.logger.InfoContext(ctx, msg, args...)
 }
 
-func (l *log) print(severity otellog.Severity, color, prefix, msg string) {
-	golog.Print(color + prefix + reset + " " + msg)
-	l.emit(severity, msg)
-}
-
-func (l *log) emit(severity otellog.Severity, msg string) {
-	var r otellog.Record
-	r.SetSeverity(severity)
-	r.SetBody(otellog.StringValue(msg))
-	l.otelLogger.Emit(l.ctx, r)
-}
-
-func sprint(v []any) string {
-	return strings.TrimSuffix(fmt.Sprintln(v...), "\n")
+func (l *log) ErrorContext(ctx context.Context, msg string, args ...any) {
+	l.logger.ErrorContext(ctx, msg, args...)
 }

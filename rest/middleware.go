@@ -35,38 +35,32 @@ func (rw *responseWriter) WriteHeader(status int) {
 
 func (s *rest) Log(next gohttp.Handler) gohttp.Handler {
 	return gohttp.HandlerFunc(func(w gohttp.ResponseWriter, r *gohttp.Request) {
+		ctx := r.Context()
 		start := time.Now()
-		s.log.Infof("INCOMING method=%s path=%s time=%s ip=%s",
-			r.Method,
-			r.URL.Path,
-			start.UTC().Format("2006-01-02T15:04:05.000Z07:00"),
-			r.RemoteAddr,
+
+		s.log.InfoContext(ctx, "INCOMING",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"time", start.UTC().Format("2006-01-02T15:04:05.000Z07:00"),
+			"ip", r.RemoteAddr,
 		)
 
-		wrapped := &responseWriter{
-			ResponseWriter: w,
-			status:         gohttp.StatusOK,
-		}
-
+		wrapped := &responseWriter{ResponseWriter: w, status: gohttp.StatusOK}
 		next.ServeHTTP(wrapped, r)
 
-		msg := fmt.Sprintf("OUTGOING method=%s path=%s time=%s status=%d latency=%s",
-			r.Method,
-			r.URL.Path,
-			time.Now().UTC().Format("2006-01-02T15:04:05.000Z07:00"),
-			wrapped.status,
-			time.Since(start),
-		)
-
-		switch {
-		case wrapped.status >= 500:
-			s.log.Errorf("%v", msg)
-		case wrapped.status >= 400:
-			s.log.Errorf("%v", msg)
-		default:
-			s.log.Infof("%v", msg)
+		args := []any{
+			"method", r.Method,
+			"path", r.URL.Path,
+			"time", time.Now().UTC().Format("2006-01-02T15:04:05.000Z07:00"),
+			"status", wrapped.status,
+			"latency", time.Since(start),
 		}
 
+		if wrapped.status >= 400 {
+			s.log.ErrorContext(ctx, "OUTGOING", args...)
+		} else {
+			s.log.InfoContext(ctx, "OUTGOING", args...)
+		}
 	})
 }
 
