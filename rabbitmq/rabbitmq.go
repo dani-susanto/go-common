@@ -16,13 +16,15 @@ func New(
 	password string,
 	host string,
 	port string,
+	vhost string,
 ) (*amqp.Channel, error) {
 	dsn := fmt.Sprintf(
-		"amqp://%s:%s@%s:%s",
+		"amqp://%s:%s@%s:%s/%s",
 		username,
 		password,
 		host,
 		port,
+		vhost,
 	)
 	conn, err := amqp.Dial(dsn)
 	if err != nil {
