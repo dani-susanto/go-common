@@ -15,6 +15,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 type Telemetry struct {
@@ -22,6 +23,7 @@ type Telemetry struct {
 	CollectorHost string
 	CollectorPort string
 	ServiceName   string
+	Enabled       bool
 }
 
 func New(
@@ -29,12 +31,14 @@ func New(
 	collectorHost string,
 	collectorPort string,
 	serviceName string,
+	enabled bool,
 ) *Telemetry {
 	return &Telemetry{
 		Ctx:           ctx,
 		CollectorHost: collectorHost,
 		CollectorPort: collectorPort,
 		ServiceName:   serviceName,
+		Enabled:       enabled,
 	}
 }
 
@@ -114,6 +118,10 @@ func (t *Telemetry) resource() (*resource.Resource, error) {
 }
 
 func (t *Telemetry) NewTracer() (trace.Tracer, error) {
+	if !t.Enabled {
+		return noop.NewTracerProvider().Tracer(t.ServiceName), nil
+	}
+
 	otel.SetTextMapPropagator(t.propagator())
 
 	tp, err := t.traceProvider()
